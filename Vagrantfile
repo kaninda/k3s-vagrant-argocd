@@ -41,7 +41,16 @@ Vagrant.configure("2") do |config|
       cp /var/lib/rancher/k3s/server/node-token /vagrant/node-token
       chmod 644 /vagrant/node-token
 
-      echo "Control plane ready. Token exported to /vagrant/node-token"
+       # ── Helm ──────────────────────────────────────────────────────────
+       echo "Installing Helm..."
+       curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+       # Kubeconfig standard pour l'user vagrant
+       mkdir -p /home/vagrant/.kube
+       cp /etc/rancher/k3s/k3s.yaml /home/vagrant/.kube/config
+       chown vagrant:vagrant /home/vagrant/.kube/config
+
+       echo "Control plane ready. Token exported to /vagrant/node-token"
     SHELL
   end
 
@@ -82,5 +91,4 @@ Vagrant.configure("2") do |config|
       echo "Worker node joined the cluster"
     SHELL
   end
-
 end
