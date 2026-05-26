@@ -6,6 +6,7 @@ Vagrant.configure("2") do |config|
     node.vm.hostname = "k3s-cp"
     node.vm.network "private_network", ip: "192.168.56.10"
     node.vm.network "forwarded_port", guest: 9090, host: 9090
+    node.vm.boot_timeout = 600
 
     node.vm.provider "virtualbox" do |vb|
       vb.name = "k3s-cp"
@@ -56,10 +57,11 @@ Vagrant.configure("2") do |config|
   end
 
   # ── Worker Node ─────────────────────────────────────────────────
-  config.vm.define "k3s-worker" do |node|
+  config.vm.define "k3s-worker", autostart: false do |node|
     node.vm.box = "ubuntu/jammy64"
     node.vm.hostname = "k3s-worker"
     node.vm.network "private_network", ip: "192.168.56.11"
+    node.vm.boot_timeout = 600
 
     node.vm.provider "virtualbox" do |vb|
       vb.name = "k3s-worker"
