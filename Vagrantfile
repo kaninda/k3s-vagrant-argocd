@@ -5,6 +5,7 @@ Vagrant.configure("2") do |config|
     node.vm.box = "ubuntu/jammy64"
     node.vm.hostname = "k3s-cp"
     node.vm.network "private_network", ip: "192.168.56.10"
+    node.vm.network "forwarded_port", guest: 9090, host: 9090
 
     node.vm.provider "virtualbox" do |vb|
       vb.name = "k3s-cp"
