@@ -10,8 +10,8 @@ Vagrant.configure("2") do |config|
 
     node.vm.provider "virtualbox" do |vb|
       vb.name = "k3s-cp"
-      vb.memory = 2048
-      vb.cpus = 2
+      vb.memory = 6144
+      vb.cpus = 4
     end
 
     node.vm.provision "shell", inline: <<-SHELL
@@ -35,14 +35,6 @@ Vagrant.configure("2") do |config|
         sleep 2
       done
 
-      until [ -f /var/lib/rancher/k3s/server/node-token ]; do
-        echo "Waiting for node token..."
-        sleep 1
-      done
-
-      cp /var/lib/rancher/k3s/server/node-token /vagrant/node-token
-      chmod 644 /vagrant/node-token
-
        # ── Helm ──────────────────────────────────────────────────────────
        echo "Installing Helm..."
        curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -52,46 +44,7 @@ Vagrant.configure("2") do |config|
        cp /etc/rancher/k3s/k3s.yaml /home/vagrant/.kube/config
        chown vagrant:vagrant /home/vagrant/.kube/config
 
-       echo "Control plane ready. Token exported to /vagrant/node-token"
-    SHELL
-  end
-
-  # ── Worker Node ─────────────────────────────────────────────────
-  config.vm.define "k3s-worker", autostart: false do |node|
-    node.vm.box = "ubuntu/jammy64"
-    node.vm.hostname = "k3s-worker"
-    node.vm.network "private_network", ip: "192.168.56.11"
-    node.vm.boot_timeout = 600
-
-    node.vm.provider "virtualbox" do |vb|
-      vb.name = "k3s-worker"
-      vb.memory = 2048
-      vb.cpus = 2
-    end
-
-    node.vm.provision "shell", inline: <<-SHELL
-      set -e
-
-      hostnamectl set-hostname k3s-worker
-
-      until ip addr show | grep -q "192.168.56.11"; do
-        echo "Waiting for private network interface..."
-        sleep 2
-      done
-
-      until [ -f /vagrant/node-token ]; do
-        echo "Waiting for control plane token..."
-        sleep 3
-      done
-
-      TOKEN=$(cat /vagrant/node-token)
-
-      curl -sfL https://get.k3s.io | sh -s - agent \
-        --server=https://192.168.56.10:6443 \
-        --token="$TOKEN" \
-        --node-ip=192.168.56.11
-
-      echo "Worker node joined the cluster"
+       echo "Single-node k3s cluster ready."
     SHELL
   end
 end
